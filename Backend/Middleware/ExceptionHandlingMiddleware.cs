@@ -45,7 +45,12 @@ public class ExceptionHandlingMiddleware
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unhandled exception. Message: {Message}", ex.Message);
+            _logger.LogError(
+                ex,
+                "Unhandled exception on {Method} {Path}. Message: {Message}",
+                context.Request.Method,
+                context.Request.Path,
+                ex.Message);
             await WriteAsync(context, (int)HttpStatusCode.InternalServerError,
                 ApiResponse<object>.Fail("An unexpected error occurred."));
         }

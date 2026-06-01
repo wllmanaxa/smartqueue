@@ -19,15 +19,19 @@ Suggested environment variables:
 
 ## Configuration
 
-The API uses **Neon PostgreSQL** via `ConnectionStrings:DefaultConnection` in `appsettings.json` (SSL required). `Program.cs` registers `ApplicationDbContext` with **Npgsql** and applies migrations on startup.
+Secrets are **not** stored in `appsettings.json`. Set them via environment variables or User Secrets.
 
-For production, override secrets with environment variables or User Secrets instead of committing passwords:
+**Local development:**
 
 ```bash
 cd Backend
-dotnet user-secrets set "ConnectionStrings:DefaultConnection" "<your-connection-string>"
+dotnet user-secrets set "ConnectionStrings:DefaultConnection" "<your-neon-or-local-connection-string>"
 dotnet user-secrets set "Jwt:Key" "YOUR_LONG_RANDOM_SIGNING_KEY_AT_LEAST_32_CHARS"
 ```
+
+`appsettings.Development.json` includes a dev-only JWT key and CORS for `localhost:5173`.
+
+**Production (Render + Neon + Vercel):** see the root [DEPLOYMENT.md](../DEPLOYMENT.md) guide.
 
 ## Database migrations
 

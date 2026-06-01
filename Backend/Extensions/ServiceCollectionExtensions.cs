@@ -1,4 +1,5 @@
 using Asp.Versioning;
+using Backend.Configuration;
 using Backend.Configurations;
 using Backend.Data;
 using Backend.DTOs.Common;
@@ -11,6 +12,7 @@ using Backend.Services;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
@@ -23,9 +25,13 @@ namespace Backend.Extensions;
 
 public static class ServiceCollectionExtensions
 {
-    public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddApplicationServices(
+        this IServiceCollection services,
+        IConfiguration configuration,
+        IWebHostEnvironment environment)
     {
         services.Configure<JwtSettings>(configuration.GetSection("Jwt"));
+        services.Configure<CorsSettings>(configuration.GetSection(CorsSettings.SectionName));
 
         services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
         services.AddScoped<IUnitOfWork, UnitOfWork>();
@@ -95,6 +101,8 @@ public static class ServiceCollectionExtensions
         });
 
         var jwt = configuration.GetSection("Jwt").Get<JwtSettings>() ?? new JwtSettings();
+        ValidateJwtSettings(jwt, environment);
+
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt.Key));
 
         services.AddAuthentication(options =>
@@ -104,7 +112,7 @@ public static class ServiceCollectionExtensions
             })
             .AddJwtBearer(options =>
             {
-                options.RequireHttpsMetadata = true;
+                options.RequireHttpsMetadata = !environment.IsDevelopment();
                 options.SaveToken = true;
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
@@ -161,9 +169,72 @@ public static class ServiceCollectionExtensions
             };
         });
 
+        var corsSettings = configuration.GetSection(CorsSettings.SectionName).Get<CorsSettings>() ?? new CorsSettings();
+        var allowedOrigins = corsSettings.AllowedOrigins
+            .Where(o => !string.IsNullOrWhiteSpace(o))
+            .Select(o => o.Trim().TrimEnd('/'))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+
         services.AddCors(p => p.AddDefaultPolicy(policy =>
-            policy.AllowAnyHeader().AllowAnyMethod().AllowCredentials().SetIsOriginAllowed(_ => true)));
+        {
+            policy.AllowAnyHeader().AllowAnyMethod().AllowCredentials();
+
+            if (environment.IsDevelopment())
+            {
+                if (allowedOrigins.Length > 0)
+                {
+                    policy.WithOrigins(allowedOrigins);
+                }
+                else
+                {
+                    policy.SetIsOriginAllowed(_ => true);
+                }
+            }
+            else
+            {
+                if (allowedOrigins.Length == 0)
+                {
+                    throw new InvalidOperationException(
+                        "Cors:AllowedOrigins must be configured in production. " +
+                        "Set Cors__AllowedOrigins to your Vercel URL(s), comma-separated.");
+                }
+
+                policy.WithOrigins(allowedOrigins);
+            }
+        }));
 
         return services;
+    }
+
+    private static void ValidateJwtSettings(JwtSettings jwt, IWebHostEnvironment environment)
+    {
+        if (string.IsNullOrWhiteSpace(jwt.Issuer) || string.IsNullOrWhiteSpace(jwt.Audience))
+        {
+            throw new InvalidOperationException("Jwt:Issuer and Jwt:Audience must be configured.");
+        }
+
+        if (environment.IsDevelopment())
+        {
+            if (string.IsNullOrWhiteSpace(jwt.Key))
+            {
+                throw new InvalidOperationException(
+                    "Jwt:Key is not configured. Set Jwt__Key via environment variables or user secrets.");
+            }
+
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(jwt.Key) || jwt.Key.Length < 32)
+        {
+            throw new InvalidOperationException(
+                "Jwt:Key must be at least 32 characters in production. Set Jwt__Key via environment variables.");
+        }
+
+        if (jwt.Key.StartsWith("CHANGE_ME", StringComparison.OrdinalIgnoreCase) ||
+            jwt.Key.StartsWith("REPLACE_WITH", StringComparison.OrdinalIgnoreCase))
+        {
+            throw new InvalidOperationException("Jwt:Key must be replaced with a secure production secret.");
+        }
     }
 }

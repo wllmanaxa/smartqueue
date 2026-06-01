@@ -8,4 +8,5 @@ out/
 .idea/
 *.log
 appsettings.*.local.json
+.env.docker
 **/Logs/*.log

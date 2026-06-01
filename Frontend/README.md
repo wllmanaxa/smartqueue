@@ -37,6 +37,9 @@ Default base URL (`.env`):
 
 ```
 VITE_API_BASE_URL=https://localhost:7159/api/v1.0
+
+# Production (Vercel): set in project env, not in .env committed to git
+# VITE_API_BASE_URL=https://your-api.onrender.com/api/v1.0
 ```
 
 The backend uses API version **1.0** (`/api/v1.0/...`). Vite proxies `/api` and `/hubs` to the backend during development.
