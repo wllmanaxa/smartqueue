@@ -85,7 +85,8 @@ Render sets `PORT` automatically; the API binds to it.
 | `Jwt__Key` | Yes | ≥ 32 random characters (openssl rand -base64 48) |
 | `Jwt__Issuer` | Yes | `SmartQueue` |
 | `Jwt__Audience` | Yes | `SmartQueueClients` |
-| `Cors__AllowedOrigins` | Yes | `https://your-app.vercel.app` (comma-separated, no trailing slash) |
+| `Cors__AllowedOrigins` | Recommended | `https://your-app.vercel.app` (comma-separated, no trailing slash) |
+| `Cors__AllowVercelPreviews` | No | `true` (default) — allows `*.vercel.app` when explicit origins are not set |
 | `Features__EnableSwagger` | No | `false` (recommended) |
 | `Jwt__AccessTokenMinutes` | No | `30` |
 | `Jwt__RefreshTokenDays` | No | `7` |
@@ -98,7 +99,7 @@ https://smartqueue.vercel.app,https://smartqueue-git-main-you.vercel.app
 
 ### 3.4 Verify API on Render
 
-Replace `API_URL` with your Render service URL (e.g. `https://smartqueue-api.onrender.com`).
+Replace `API_URL` with your Render service URL (production: `https://smartqueue-7dxl.onrender.com`).
 
 ```bash
 curl -s "https://API_URL/health"
@@ -138,7 +139,7 @@ curl -s -X POST "https://API_URL/api/v1.0/Auth/login" \
 
 | Variable | Required | Example |
 |----------|----------|---------|
-| `VITE_API_BASE_URL` | Yes | `https://smartqueue-api.onrender.com/api/v1.0` |
+| `VITE_API_BASE_URL` | Yes | `https://smartqueue-7dxl.onrender.com/api/v1.0` (or host only; app appends `/api/v1.0`) |
 
 Optional:
 
@@ -175,7 +176,7 @@ Features__EnableSwagger=false
 ### Frontend (Vercel)
 
 ```
-VITE_API_BASE_URL=https://your-api.onrender.com/api/v1.0
+VITE_API_BASE_URL=https://smartqueue-7dxl.onrender.com/api/v1.0
 ```
 
 ### JWT (signing & validation)
@@ -269,7 +270,8 @@ npm run preview
 | `503` on `/health` | Neon unreachable or wrong connection string | Verify Neon string, SSL, IP allowlist |
 | CORS error in browser | `Cors__AllowedOrigins` mismatch | Use exact Vercel URL, no trailing slash |
 | Frontend 404 on refresh | SPA routing | `vercel.json` rewrites (included) |
-| API calls go to wrong host | `VITE_API_BASE_URL` not set at build | Set in Vercel, redeploy |
+| API calls go to `/Auth/login` (404) | `VITE_API_BASE_URL` missing `/api/v1.0` | Use full base or host only (app normalizes); redeploy |
+| API calls go to wrong host | `VITE_API_BASE_URL` not set at build | Set in Vercel or use `Frontend/.env.production`, redeploy |
 | SignalR fails | CORS or wrong hub URL | Ensure `getHubBaseUrl()` resolves to Render origin |
 | 401 on all routes | Clock skew or wrong JWT key | Same `Jwt__Key` across deploys; check issuer/audience |
 

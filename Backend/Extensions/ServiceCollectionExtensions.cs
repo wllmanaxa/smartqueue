@@ -190,7 +190,27 @@ public static class ServiceCollectionExtensions
             else
             {
                 var (productionOrigins, _) = CorsOriginResolver.ResolveForProduction(configuration, corsSettings);
-                policy.WithOrigins(productionOrigins);
+                var allowVercelPreviews = corsSettings.AllowVercelPreviews;
+
+                policy.SetIsOriginAllowed(origin =>
+                {
+                    if (string.IsNullOrWhiteSpace(origin))
+                    {
+                        return false;
+                    }
+
+                    if (productionOrigins.Contains(origin, StringComparer.OrdinalIgnoreCase))
+                    {
+                        return true;
+                    }
+
+                    if (!allowVercelPreviews || !Uri.TryCreate(origin, UriKind.Absolute, out var uri))
+                    {
+                        return false;
+                    }
+
+                    return uri.Host.EndsWith(".vercel.app", StringComparison.OrdinalIgnoreCase);
+                });
             }
         }));
 

@@ -1,0 +1,23 @@
+# Build outputs
+**/bin/
+**/obj/
+**/out/
+**/dist/
+**/node_modules/
+**/publish/
+
+# Environment (keep .env.example and .env.production templates committed)
+.env
+.env.local
+.env.*.local
+
+# IDE / OS
+.vs/
+.idea/
+*.user
+*.suo
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

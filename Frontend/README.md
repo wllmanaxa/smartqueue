@@ -36,13 +36,13 @@ App: **http://localhost:5173**
 Default base URL (`.env`):
 
 ```
-VITE_API_BASE_URL=https://localhost:7159/api/v1
+VITE_API_BASE_URL=https://localhost:7159/api/v1.0
 
 # Production (Vercel): set in project env, not in .env committed to git
-# VITE_API_BASE_URL=https://smartqueue-7dxl.onrender.com/api/v1
+# VITE_API_BASE_URL=https://smartqueue-7dxl.onrender.com/api/v1.0
 ```
 
-The backend uses API version **1** (`/api/v1/...`). `getApiBaseUrl()` appends `/api/v1` when `VITE_API_BASE_URL` is only the host. Vite proxies `/api` and `/hubs` to the backend during development.
+The backend uses API version **1.0** (`/api/v1.0/...`). `getApiBaseUrl()` appends `/api/v1.0` when `VITE_API_BASE_URL` is only the host. Vite proxies `/api` and `/hubs` to the backend during development.
 
 Ensure the backend is running (`dotnet run` in `Backend`) and trust the dev HTTPS certificate if needed.
 

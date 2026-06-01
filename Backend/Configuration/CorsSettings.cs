@@ -16,4 +16,10 @@ public class CorsSettings
         "http://localhost:5173",
         "https://localhost:5173"
     ];
+
+    /// <summary>
+    /// When true, allows any origin whose host ends with <c>.vercel.app</c> (production/preview deploys).
+    /// Env: Cors__AllowVercelPreviews (true/false).
+    /// </summary>
+    public bool AllowVercelPreviews { get; set; } = true;
 }

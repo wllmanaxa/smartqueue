@@ -3,6 +3,10 @@
 #
 # Deploy: connect this repo in Render → New → Blueprint → select render.yaml
 # Or create a Web Service manually using the build/start commands below.
+#
+# Live API (example): https://smartqueue-7dxl.onrender.com
+# Health: https://smartqueue-7dxl.onrender.com/health
+# Login: POST https://smartqueue-7dxl.onrender.com/api/v1.0/Auth/login
 
 services:
   - type: web
@@ -29,5 +33,7 @@ services:
         value: SmartQueueClients
       - key: Cors__AllowedOrigins
         sync: false
+      - key: Cors__AllowVercelPreviews
+        value: "true"
       - key: Features__EnableSwagger
         value: "false"

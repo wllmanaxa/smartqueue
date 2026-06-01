@@ -1,12 +1,16 @@
 /**
  * Single source for API URLs — set VITE_API_BASE_URL in .env (local) or Vercel env (production).
- * Accepts either the API origin (https://host) or a full versioned prefix (https://host/api/v1).
- * In dev without .env, falls back to the Vite proxy path /api/v1.
+ * Accepts the API origin (https://host) or a full versioned prefix (https://host/api/v1.0).
+ * In dev without .env, falls back to the Vite proxy path /api/v1.0.
  */
-const API_VERSION_PATH = '/api/v1';
+const API_VERSION_PATH = '/api/v1.0';
 
 function normalizeApiBaseUrl(url) {
-  const trimmed = url.replace(/\/$/, '');
+  let trimmed = url.replace(/\/$/, '');
+  // Legacy /api/v1 (no minor) → /api/v1.0 to match backend [ApiVersion("1.0")]
+  if (/\/api\/v1$/i.test(trimmed)) {
+    trimmed = `${trimmed}.0`;
+  }
   if (/\/api\/v[\d.]+$/i.test(trimmed)) {
     return trimmed;
   }
@@ -18,7 +22,7 @@ export function getApiBaseUrl() {
   if (url) return normalizeApiBaseUrl(url);
   if (import.meta.env.DEV) return API_VERSION_PATH;
   throw new Error(
-    'VITE_API_BASE_URL is required for production builds (e.g. https://smartqueue-7dxl.onrender.com or https://smartqueue-7dxl.onrender.com/api/v1).'
+    'VITE_API_BASE_URL is required for production builds (e.g. https://smartqueue-7dxl.onrender.com or https://smartqueue-7dxl.onrender.com/api/v1.0).'
   );
 }
 
