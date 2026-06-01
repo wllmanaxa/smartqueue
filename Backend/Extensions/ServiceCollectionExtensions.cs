@@ -170,7 +170,6 @@ public static class ServiceCollectionExtensions
         });
 
         var corsSettings = configuration.GetSection(CorsSettings.SectionName).Get<CorsSettings>() ?? new CorsSettings();
-        var allowedOrigins = ResolveCorsOrigins(configuration, corsSettings.AllowedOrigins);
 
         services.AddCors(p => p.AddDefaultPolicy(policy =>
         {
@@ -178,9 +177,10 @@ public static class ServiceCollectionExtensions
 
             if (environment.IsDevelopment())
             {
-                if (allowedOrigins.Length > 0)
+                var devOrigins = CorsOriginResolver.Resolve(configuration, corsSettings.AllowedOrigins);
+                if (devOrigins.Length > 0)
                 {
-                    policy.WithOrigins(allowedOrigins);
+                    policy.WithOrigins(devOrigins);
                 }
                 else
                 {
@@ -189,42 +189,12 @@ public static class ServiceCollectionExtensions
             }
             else
             {
-                var productionOrigins = allowedOrigins;
-                if (productionOrigins.Length == 0)
-                {
-                    productionOrigins = ResolveCorsOrigins(
-                        configuration,
-                        corsSettings.FallbackAllowedOrigins);
-                }
-
+                var (productionOrigins, _) = CorsOriginResolver.ResolveForProduction(configuration, corsSettings);
                 policy.WithOrigins(productionOrigins);
             }
         }));
 
         return services;
-    }
-
-    private static string[] ResolveCorsOrigins(IConfiguration configuration, string[]? configuredOrigins)
-    {
-        var origins = new List<string>();
-
-        if (configuredOrigins is { Length: > 0 })
-        {
-            origins.AddRange(configuredOrigins);
-        }
-
-        // Render/env often sets Cors__AllowedOrigins as one comma-separated value (not array indexes).
-        var envOrigins = configuration[$"{CorsSettings.SectionName}:AllowedOrigins"];
-        if (!string.IsNullOrWhiteSpace(envOrigins))
-        {
-            origins.AddRange(envOrigins.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries));
-        }
-
-        return origins
-            .Where(o => !string.IsNullOrWhiteSpace(o))
-            .Select(o => o.Trim().TrimEnd('/'))
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .ToArray();
     }
 
     private static void ValidateJwtSettings(JwtSettings jwt, IWebHostEnvironment environment)
