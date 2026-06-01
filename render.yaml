@@ -1,0 +1,33 @@
+# Render Blueprint — Smart Queue API
+# Docs: https://render.com/docs/blueprint-spec
+#
+# Deploy: connect this repo in Render → New → Blueprint → select render.yaml
+# Or create a Web Service manually using the build/start commands below.
+
+services:
+  - type: web
+    name: smartqueue-api
+    runtime: dotnet
+    region: oregon
+    plan: free
+    rootDir: Backend
+    buildCommand: dotnet restore && dotnet publish -c Release -o ./publish
+    startCommand: dotnet ./publish/Backend.dll
+    healthCheckPath: /health
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: ASPNETCORE_FORWARDEDHEADERS_ENABLED
+        value: "true"
+      - key: ConnectionStrings__DefaultConnection
+        sync: false
+      - key: Jwt__Key
+        sync: false
+      - key: Jwt__Issuer
+        value: SmartQueue
+      - key: Jwt__Audience
+        value: SmartQueueClients
+      - key: Cors__AllowedOrigins
+        sync: false
+      - key: Features__EnableSwagger
+        value: "false"
