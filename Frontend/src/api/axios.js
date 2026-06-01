@@ -30,7 +30,7 @@ async function refreshAccessToken() {
 
   if (!refreshPromise) {
     refreshPromise = api
-      .post('/Auth/refresh', { refreshToken: refresh }, { _skipAuthRetry: true })
+      .post('Auth/refresh', { refreshToken: refresh }, { _skipAuthRetry: true })
       .then((res) => {
         const body = res.data;
         const tokenData = body?.data ?? body;

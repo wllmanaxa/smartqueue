@@ -7,8 +7,8 @@ const put = (url, data, config) => api.put(url, data, config).then(unwrap);
 const del = (url, config) => api.delete(url, config).then(unwrap);
 
 export const authApi = {
-  login: (userName, password) => post('/Auth/login', { userName, password }),
-  register: (payload) => post('/Auth/register', payload),
+  login: (userName, password) => post('Auth/login', { userName, password }),
+  register: (payload) => post('Auth/register', payload),
 };
 
 export const branchesApi = {
