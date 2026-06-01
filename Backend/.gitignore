@@ -1,0 +1,11 @@
+bin/
+obj/
+out/
+*.user
+*.suo
+*.cache
+.vs/
+.idea/
+*.log
+appsettings.*.local.json
+**/Logs/*.log

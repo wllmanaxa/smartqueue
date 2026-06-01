@@ -1,0 +1,12 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      # Uses Neon PostgreSQL (same as appsettings.json). Override via .env if needed.
+      ConnectionStrings__DefaultConnection: "Host=ep-twilight-river-apu04l93-pooler.c-7.us-east-1.aws.neon.tech;Port=5432;Database=neondb;Username=neondb_owner;Password=npg_syILkCH04xYp;SSL Mode=Require;Trust Server Certificate=true"
+      Jwt__Key: "DOCKER_DEV_KEY_CHANGE_ME_TO_32_OR_MORE_CHARS_XXXX"
